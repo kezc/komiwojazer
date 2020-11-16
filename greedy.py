@@ -24,6 +24,6 @@ def greedy(vertices):
         visited[closest_vertex_index] = True
         current_vertex = closest_vertex
         total_distance += min_dist
-    path.append(path[0])
     total_distance += ((path[0][1] - path[-1][1]) ** 2 + (path[0][2] - path[-1][2]) ** 2) ** (1 / 2)
+    path.append(path[0])
     return path, total_distance
