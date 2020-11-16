@@ -1,7 +1,7 @@
 import random
 
 
-def generate(n, top=10, right=10, bottom=0, left=0):
+def generate(n, top=40, right=40, bottom=0, left=0):
     if (top - bottom + 1) * (right - left + 1) < n or top < bottom or right < left:
         raise ValueError("Wrong arguments")
     points = []
