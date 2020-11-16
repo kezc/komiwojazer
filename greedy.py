@@ -1,4 +1,4 @@
-positions = [(1, 1), (7, 4), (9, 2), (5, -5), (2, 3)]
+positions = [(1, 6, 10), (2, 0, 5), (3, 5, 8), (4, 8, 4)]
 
 
 def greedy(vertices):
@@ -14,7 +14,7 @@ def greedy(vertices):
             vertex = vertices[i]
             if vertex == current_vertex or visited[i]:
                 continue
-            dist = ((current_vertex[0] - vertex[0]) ** 2 + (current_vertex[1] - vertex[1]) ** 2) ** (1 / 2)
+            dist = ((current_vertex[1] - vertex[1]) ** 2 + (current_vertex[2] - vertex[2]) ** 2) ** (1 / 2)
             if min_dist is None or min_dist > dist:
                 min_dist = dist
                 closest_vertex = vertex
