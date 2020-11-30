@@ -1,7 +1,7 @@
 import random
 
 
-def generate(n, top=40, right=40, bottom=0, left=0):
+def generate(n, top=2000, right=2000, bottom=0, left=0):
     if (top - bottom + 1) * (right - left + 1) < n or top < bottom or right < left:
         raise ValueError("Wrong arguments")
     points = []
@@ -28,5 +28,5 @@ def read_from_file(file_name):
         lines = file.read().splitlines()
         n = int(lines[0])
         for i in range(n):
-            instance.append(list(map(lambda x: int(x), lines[i + 1].split(' '))))
+            instance.append(list(map(lambda x: int(x), lines[i + 1].split())))
     return instance
