@@ -8,7 +8,7 @@ def generate(n, top=2000, right=2000, bottom=0, left=0):
     for i in range(n):
         x = random.randrange(left, right + 1)
         y = random.randrange(bottom, top + 1)
-        while (x, y) in points:
+        while (x, y) in list(map(lambda p: (p[1], p[2]), points)):
             x = random.randrange(left, right + 1)
             y = random.randrange(bottom, top + 1)
         points.append((i + 1, x, y))

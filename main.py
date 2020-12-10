@@ -3,9 +3,9 @@ import matplotlib.pyplot as plt
 from generator import *
 from greedy import *
 
-# points = generate(40)
+points = generate(9, 2,2)
 # save_to_file("1.txt", points)
-points = read_from_file('tsp1000.txt')
+# points = read_from_file('tsp1000.txt')
 print(points)
 result, total_distance = greedy(points)
 print(result)
