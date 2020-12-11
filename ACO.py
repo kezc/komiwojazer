@@ -1,6 +1,6 @@
-from random import randrange, random
+from random import random
 
-from generator import generate, read_from_file, save_to_file
+from generator import generate
 
 
 class AntColonyOptimization:
@@ -16,12 +16,14 @@ class AntColonyOptimization:
     evaporation_rate = 0.5
 
     # influence of pheromone
-    alpha = 1
+    alpha = 0.7
 
     # influence of trail level
-    beta = 5
+    beta = 1
 
-    ants_amount = 5
+    ants_amount = 6
+
+    iterations = 30
 
     def __init__(self, points):
         self.vertex_amount = len(points)
@@ -45,6 +47,13 @@ class AntColonyOptimization:
             self.costs_matrix.append(current_vertex_costs)
             self.pheromones_matrix.append(current_vertex_pheromones)
 
+    def do_iterations(self):
+        for i in range(self.iterations):
+            print(i, end=" ")
+            solutions = self.construct_ant_solutions()
+            self.update_pheromones(solutions)
+        return list(map(lambda x: x + 1, self.construct_ant_solutions()[0][0])), self.construct_ant_solutions()[0][1]
+
     def construct_ant_solutions(self):
         results = []
         for _ in range(self.ants_amount):
@@ -55,8 +64,7 @@ class AntColonyOptimization:
             while len(path) < self.vertex_amount:
                 visited_vertices[current_vertex] = True
                 probabilities = self.calculate_probabilities(current_vertex, visited_vertices)
-                # generate random number in range <0, probability_denominator>
-                random_number = random()
+                random_number = random()  # generate random number in range <0, 1)
                 probabilities_sum = 0
                 for vertex, probability in enumerate(probabilities):
                     probabilities_sum += probability
@@ -85,14 +93,25 @@ class AntColonyOptimization:
             denominator += value
         return list(map(lambda numerator: numerator / denominator, numerators))
 
-    def update_pheromones(self):
-        pass
+    def update_pheromones(self, solutions):
+        for i in range(self.vertex_amount):
+            for j in range(self.vertex_amount):
+                self.pheromones_matrix[i][j] *= (1 - self.evaporation_rate)
+        for path, path_length in solutions:
+            delta_pheromone = 1 / path_length
+            for i in range(len(path) - 1):
+                vertex1 = path[i]
+                vertex2 = path[i + 1]
+                self.pheromones_matrix[vertex1][vertex2] += delta_pheromone
+                self.pheromones_matrix[vertex2][vertex1] += delta_pheromone
+        # for line in self.pheromones_matrix:
+        #     print(line)
 
 
 if __name__ == '__main__':
-    points = generate(500)
+    points = generate(50)
     # save_to_file("pawel", points)
     # points = read_from_file('pawel')
     print(points)
     aco = AntColonyOptimization(points)
-    print(aco.construct_ant_solutions())
+    aco.do_iterations()
