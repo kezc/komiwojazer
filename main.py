@@ -6,7 +6,7 @@ from greedy import *
 
 # points = generate(500)
 # save_to_file("1.txt", points)
-points = read_from_file('1.txt')
+points = read_from_file('tsp1000.txt')
 print(points)
 result, total_distance = greedy(points)
 ns = list(map(lambda x: x[0], result))

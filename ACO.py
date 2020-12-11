@@ -13,17 +13,17 @@ class AntColonyOptimization:
     vertex_amount = 0
 
     # how quickly pheromones disappear
-    evaporation_rate = 0.5
+    evaporation_rate = 0.1
 
     # influence of pheromone
-    alpha = 0.7
+    alpha = 15
 
     # influence of trail level
-    beta = 1
+    beta = 200
 
-    ants_amount = 6
+    ants_amount = 50
 
-    iterations = 30
+    iterations = 10
 
     def __init__(self, points):
         self.vertex_amount = len(points)
@@ -48,11 +48,14 @@ class AntColonyOptimization:
             self.pheromones_matrix.append(current_vertex_pheromones)
 
     def do_iterations(self):
+        solutions = 0
         for i in range(self.iterations):
             print(i, end=" ")
             solutions = self.construct_ant_solutions()
             self.update_pheromones(solutions)
-        return list(map(lambda x: x + 1, self.construct_ant_solutions()[0][0])), self.construct_ant_solutions()[0][1]
+        print()
+        best = min(solutions, key=lambda x: x[1])
+        return list(map(lambda x: x + 1, best[0])), best[1]
 
     def construct_ant_solutions(self):
         results = []
