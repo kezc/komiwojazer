@@ -73,11 +73,12 @@ class AntColonyOptimization:
                     probabilities_sum += probability
                     if random_number <= probabilities_sum and probability != 0:
                         path_length += self.costs_matrix[current_vertex][vertex]
+                        # print(self.costs_matrix[current_vertex][vertex])
                         path.append(vertex)
                         current_vertex = vertex
                         break
             path.append(path[0])
-            path_length += self.costs_matrix[current_vertex][-1]
+            path_length += self.costs_matrix[current_vertex][path[-1]]
             results.append((path, path_length))
         return results
 
