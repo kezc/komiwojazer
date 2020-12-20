@@ -1,4 +1,5 @@
-from random import random
+import sys
+from random import random, randrange
 
 from generator import generate
 
@@ -21,9 +22,11 @@ class AntColonyOptimization:
     # influence of trail level
     beta = 200
 
-    ants_amount = 50
+    ants_amount = 100
 
-    iterations = 10
+    iterations = 100
+
+    best = ([], sys.maxsize)
 
     def __init__(self, points):
         self.vertex_amount = len(points)
@@ -48,19 +51,20 @@ class AntColonyOptimization:
             self.pheromones_matrix.append(current_vertex_pheromones)
 
     def do_iterations(self):
-        solutions = 0
         for i in range(self.iterations):
             print(i, end=" ")
             solutions = self.construct_ant_solutions()
+            _best = min(solutions, key=lambda x: x[1])
+            if _best[1] < self.best[1]:
+                self.best = _best
             self.update_pheromones(solutions)
         print()
-        best = min(solutions, key=lambda x: x[1])
-        return list(map(lambda x: x + 1, best[0])), best[1]
+        return list(map(lambda x: x + 1, self.best[0])), self.best[1]
 
     def construct_ant_solutions(self):
         results = []
-        for _ in range(self.ants_amount):
-            current_vertex = 0
+        for i in range(self.ants_amount):
+            current_vertex = randrange(self.vertex_amount)
             visited_vertices = [False for _ in range(self.vertex_amount)]
             path_length = 0
             path = [current_vertex]

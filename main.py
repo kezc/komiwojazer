@@ -4,9 +4,9 @@ from ACO import AntColonyOptimization
 from generator import *
 from greedy import *
 
-# points = generate(500)
+# points = generate(5, 10, 10)
 # save_to_file("1.txt", points)
-points = read_from_file('tsp1000.txt')
+points = read_from_file('berlin52.txt')
 print(points)
 result, total_distance = greedy(points)
 ns = list(map(lambda x: x[0], result))
