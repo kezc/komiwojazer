@@ -1,4 +1,6 @@
 import sys
+import timeit
+from multiprocessing import Pool
 from random import random, randrange
 
 from generator import generate
@@ -22,7 +24,7 @@ class AntColonyOptimization:
     # influence of trail level
     beta = 200
 
-    ants_amount = 100
+    ants_amount = 50
 
     iterations = 100
 
@@ -51,40 +53,47 @@ class AntColonyOptimization:
             self.pheromones_matrix.append(current_vertex_pheromones)
 
     def do_iterations(self):
-        for i in range(self.iterations):
-            print(i, end=" ")
-            solutions = self.construct_ant_solutions()
-            _best = min(solutions, key=lambda x: x[1])
-            if _best[1] < self.best[1]:
-                self.best = _best
-            self.update_pheromones(solutions)
-        print()
+        start = timeit.default_timer()
+        with Pool(8) as p:
+            for i in range(self.iterations):
+                print(i, end=" ", flush=True)
+                solutions = p.map(self.single_solution,
+                                  [(self.costs_matrix, self.pheromones_matrix) for _ in range(self.ants_amount)])
+                # solutions = p.map(self.single_solution,range(self.ants_amount))
+                # solutions = []
+                # for _ in range(self.ants_amount):
+                #     solutions.append(self.single_solution(()))
+                _best = min(solutions, key=lambda x: x[1])
+                if _best[1] < self.best[1]:
+                    self.best = _best
+                self.update_pheromones(solutions)
+            print()
+        stop = timeit.default_timer()
+        print('Time: ', stop - start)
         return list(map(lambda x: x + 1, self.best[0])), self.best[1]
 
-    def construct_ant_solutions(self):
-        results = []
-        for i in range(self.ants_amount):
-            current_vertex = randrange(self.vertex_amount)
-            visited_vertices = [False for _ in range(self.vertex_amount)]
-            path_length = 0
-            path = [current_vertex]
-            while len(path) < self.vertex_amount:
-                visited_vertices[current_vertex] = True
-                probabilities = self.calculate_probabilities(current_vertex, visited_vertices)
-                random_number = random()  # generate random number in range <0, 1)
-                probabilities_sum = 0
-                for vertex, probability in enumerate(probabilities):
-                    probabilities_sum += probability
-                    if random_number <= probabilities_sum and probability != 0:
-                        path_length += self.costs_matrix[current_vertex][vertex]
-                        # print(self.costs_matrix[current_vertex][vertex])
-                        path.append(vertex)
-                        current_vertex = vertex
-                        break
-            path.append(path[0])
-            path_length += self.costs_matrix[current_vertex][path[-1]]
-            results.append((path, path_length))
-        return results
+    def single_solution(self, args):
+        self.costs_matrix, self.pheromones_matrix = args  # windows hack to share memory
+        current_vertex = randrange(self.vertex_amount)
+        visited_vertices = [False for _ in range(self.vertex_amount)]
+        path_length = 0
+        path = [current_vertex]
+        while len(path) < self.vertex_amount:
+            visited_vertices[current_vertex] = True
+            probabilities = self.calculate_probabilities(current_vertex, visited_vertices)
+            random_number = random()  # generate random number in range <0, 1)
+            probabilities_sum = 0
+            for vertex, probability in enumerate(probabilities):
+                probabilities_sum += probability
+                if random_number <= probabilities_sum and probability != 0:
+                    path_length += self.costs_matrix[current_vertex][vertex]
+                    # print(self.costs_matrix[current_vertex][vertex])
+                    path.append(vertex)
+                    current_vertex = vertex
+                    break
+        path.append(path[0])
+        path_length += self.costs_matrix[current_vertex][path[-1]]
+        return (path, path_length)
 
     def calculate_probabilities(self, current_vertex, visited_edges):
         pheromones = self.pheromones_matrix[current_vertex]
