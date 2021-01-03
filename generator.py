@@ -28,5 +28,5 @@ def read_from_file(file_name):
         lines = file.read().splitlines()
         n = int(lines[0])
         for i in range(n):
-            instance.append(list(map(lambda x: int(x), lines[i + 1].split())))
+            instance.append(list(map(lambda x: int(x), lines[i + 1].strip().split())))
     return instance
