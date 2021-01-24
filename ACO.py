@@ -13,7 +13,7 @@ class AntColonyOptimization:
     # amounts of pheromones on edge
     pheromones_matrix = []
 
-    iterations = 200
+    # iterations = 4000
 
     max_single_iteration_time = 0
 
@@ -22,7 +22,7 @@ class AntColonyOptimization:
     best = ([], sys.maxsize)
 
     # def __init__(self, points):
-    def __init__(self, points, evaporation_rate=0.5, alpha=3, beta=5, ants_amount=20, Q=1, max_time=60):
+    def __init__(self, points, evaporation_rate=0.5, alpha=1, beta=8, ants_amount=20, Q=1, max_time=120):
         # how quickly pheromones disappear
         self.Q = Q
         self.evaporation_rate = evaporation_rate
@@ -63,12 +63,11 @@ class AntColonyOptimization:
     def do_iterations(self):
         itstart = timeit.default_timer()
         with Pool(8) as p:
+            # for i in range(10):
             i = 0
-            for i in range(self.iterations):
-                # while True:
+            while True:
                 start = timeit.default_timer()
-                print(i, end=" ", flush=True)
-                i += 1
+                # print(i, end=" ", flush=True)
                 # print(self.pheromones_matrix)
                 solutions = p.map(self.single_solution,
                                   [(self.costs_matrix, self.pheromones_matrix) for _ in range(self.ants_amount)])
@@ -82,23 +81,22 @@ class AntColonyOptimization:
                 self.max_single_iteration_time = max(self.max_single_iteration_time, time)
                 if self.passed_time + self.max_single_iteration_time > self.max_time:
                     break
-            print()
+                i += 1
+            # print()
+            p.close()
         itstop = timeit.default_timer()
-        print('Time: ', itstop - itstart)
+        # print('Time: ', itstop - itstart)
         return list(map(lambda x: x + 1, self.best[0])), self.best[1]
-
     def single_solution(self, args):
         self.costs_matrix, self.pheromones_matrix = args  # windows hack to share memory
         current_vertex = randrange(self.vertex_amount)
         visited_vertices = [False for _ in range(self.vertex_amount)]
         path_length = 0
         path = [current_vertex]
+        # i = 0
         while len(path) < self.vertex_amount:
             visited_vertices[current_vertex] = True
             probabilities = self.calculate_probabilities(current_vertex, visited_vertices)
-            # print(probabilities)
-            # print(self.costs_matrix[current_vertex])
-            # print()
             random_number = random()  # generate random number in range <0, 1)
             probabilities_sum = 0
             for vertex, probability in enumerate(probabilities):
@@ -113,7 +111,7 @@ class AntColonyOptimization:
         path_length += self.costs_matrix[current_vertex][path[-1]]
         return (path, path_length)
 
-    def calculate_probabilities(self, current_vertex, visited_edges, calculate_beta=True):
+    def calculate_probabilities(self, current_vertex, visited_edges):
         pheromones = self.pheromones_matrix[current_vertex]
         costs = self.costs_matrix[current_vertex]
         numerators = []
@@ -123,15 +121,31 @@ class AntColonyOptimization:
                 value = 0
             else:  # not visited
                 # calculate with formula
-                value = (self.Q / cost) ** self.beta
-                if calculate_beta:
-                    value *= pheromone ** self.alpha
+                value = ((self.Q / cost) ** self.beta) * (pheromone ** self.alpha)
             numerators.append(value)
             denominator += value
-        if denominator > 0:
-            result = list(map(lambda numerator: numerator / denominator, numerators))
-        else:
-            result = self.calculate_probabilities(current_vertex, visited_edges, False)
+        if denominator == 0:
+            numerators = []
+            for pheromone, cost, visited in zip(pheromones, costs, visited_edges):
+                if visited or cost == 0:
+                    value = 0
+                else:  # not visited
+                    # calculate with formula
+                    value = pheromone ** self.alpha
+                numerators.append(value)
+                denominator += value
+        if denominator == 0:
+            numerators = []
+            for pheromone, cost, visited in zip(pheromones, costs, visited_edges):
+                if visited or cost == 0:
+                    value = 0
+                else:  # not visited
+                    # calculate with formula
+                    value = (self.Q / cost) ** self.beta
+                numerators.append(value)
+                denominator += value
+
+        result = list(map(lambda numerator: numerator / denominator, numerators))
         return result
 
     def update_pheromones(self, solutions):
@@ -145,14 +159,3 @@ class AntColonyOptimization:
                 vertex2 = path[i + 1]
                 self.pheromones_matrix[vertex1][vertex2] += delta_pheromone
                 self.pheromones_matrix[vertex2][vertex1] += delta_pheromone
-        # for line in self.pheromones_matrix:
-        #     print(line)
-
-
-if __name__ == '__main__':
-    points = generate(50)
-    # save_to_file("pawel", points)
-    # points = read_from_file('pawel')
-    print(points)
-    aco = AntColonyOptimization(points)
-    aco.do_iterations()
